@@ -113,6 +113,8 @@ add_library(spindumplib
   spindump_utilcrc.c 
   spindump_utildebug.c 
   spindump_utilerror.c 
+  #ADDED FOR SPINDUMP IMPLEMENTATION
+  spindump_analyze_tcp_parser.c
 )
 
 target_include_directories(spindumplib
@@ -198,7 +200,7 @@ set_property(SOURCE spindump_main.c APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_SOU
 
 #
 # Installations
-#
+#spindump_analyze_tcp_parser
 
 
 install(SCRIPT spindump_install.sh)

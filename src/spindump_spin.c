@@ -160,6 +160,75 @@ spindump_spintracker_observespinandcalculatertt(struct spindump_analyze* state,
                                                 int *isFlip) {
   struct spindump_spintracker* tracker;
   struct spindump_spintracker* otherDirectionTracker;
+
+  //ADDED FOR SPIN BIT IMPLEMENTATION
+  if(connection->type == spindump_connection_transport_tcp) {
+    //mock the original function code but for tcp
+    if (fromResponder) {
+    tracker = &connection->u.tcp.spinFromPeer2to1;
+    otherDirectionTracker = &connection->u.tcp.spinFromPeer1to2;
+    } else {
+      tracker = &connection->u.tcp.spinFromPeer1to2;
+      otherDirectionTracker = &connection->u.tcp.spinFromPeer2to1;
+    }
+
+    int spin0to1;
+    if (spindump_spintracker_observespin(state,
+                                        packet,
+                                        connection,
+                                        tracker,
+                                        ts,
+                                        spin,
+                                        fromResponder,
+                                        ipPacketLength,
+                                        &spin0to1)) {
+      
+      *isFlip=1;
+      //
+      // Try to match the spin flip with the most recent matching flip in the other direction.
+      // Responder spin flips match with equal flips, initiator flips match with inverse flips.
+      //
+      
+      struct timeval* otherSpinTime =
+        spindump_spintracker_match_bidirectional_spin(otherDirectionTracker,
+                                                      1,
+                                                      fromResponder ? spin0to1 : !spin0to1);
+      
+      if (otherSpinTime) {
+        spindump_connections_newrttmeasurement(state,
+                                              packet,
+                                              connection,
+                                              ipPacketLength,
+                                              fromResponder, // 0 = left, 1 = right
+                                              0, // bidirectional
+                                              otherSpinTime,
+                                              ts,
+                                              "SPIN");
+      }
+      
+      //
+      // Match spin with previous in same direction to obtain end to end RTT.
+      //
+      
+      otherSpinTime = spindump_spintracker_match_unidirectional_spin(tracker, spin0to1);
+      
+      if (otherSpinTime) {        
+        spindump_connections_newrttmeasurement(state,
+                                              packet,
+                                              connection,
+                                              ipPacketLength,
+                                              fromResponder,
+                                              1, // unidirectional
+                                              otherSpinTime,
+                                              ts,
+                                              "SPIN_UNIDIR");
+      }
+    }
+
+    return;
+  }
+
+
   if (fromResponder) {
     tracker = &connection->u.quic.spinFromPeer2to1;
     otherDirectionTracker = &connection->u.quic.spinFromPeer1to2;
