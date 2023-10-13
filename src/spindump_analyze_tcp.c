@@ -637,6 +637,7 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
       //ADDED TO ENABLE SPIN SUPPORT FOR TCP
       //Normal case of connection established, check if efm is active
       if (connection->state == spindump_connection_state_established && connection->u.tcp.EFM_technique == spindump_tcp_EFM_spin) {
+        fprintf(stderr,"spin evalutation is ongoing...");
         //if spin bit is used, retrieve the spin value:
         int spin = spindump_analyze_tcp_parser_gettimebit(packet->contents + tcpHeaderPosition);
         //call function for RTT measurement
