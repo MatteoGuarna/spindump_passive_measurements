@@ -161,7 +161,7 @@ spindump_spintracker_observespinandcalculatertt(struct spindump_analyze* state,
   struct spindump_spintracker* tracker;
   struct spindump_spintracker* otherDirectionTracker;
 
-  //ADDED FOR SPIN BIT IMPLEMENTATION
+  //ADDED TO ENABLE SPIN SUPPORT FOR TCP
   if(connection->type == spindump_connection_transport_tcp) {
     //mock the original function code but for tcp
     if (fromResponder) {

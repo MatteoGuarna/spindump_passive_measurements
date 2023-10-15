@@ -136,7 +136,7 @@ spindump_analyze_process_tcp_markackreceived(struct spindump_analyze* state,
       
       //ADDED TO ENABLE SPIN SUPPORT FOR TCP
       //avoid new rtt measurement if connection is established and any EFM is active
-      if (connection->u.tcp.EFM_technique != spindump_tcp_no_EFM && connection->state == spindump_connection_state_established)
+      if (connection->u.tcp.EFM_technique == spindump_tcp_no_EFM || connection->state != spindump_connection_state_established)
       spindump_connections_newrttmeasurement(state,
                                              packet,
                                              connection,
@@ -168,7 +168,7 @@ spindump_analyze_process_tcp_markackreceived(struct spindump_analyze* state,
                           *finset);
       //ADDED TO ENABLE SPIN SUPPORT FOR TCP
       //avoid new rtt measurement if connection is established and any EFM is active
-      if (connection->u.tcp.EFM_technique != spindump_tcp_no_EFM && connection->state == spindump_connection_state_established)
+      if (connection->u.tcp.EFM_technique == spindump_tcp_no_EFM || connection->state != spindump_connection_state_established)
       spindump_connections_newrttmeasurement(state,
                                              packet,
                                              connection,
