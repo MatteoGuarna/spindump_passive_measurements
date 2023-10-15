@@ -96,15 +96,15 @@ spindump_timediffinusecs(const struct timeval* later,
   spindump_assert(earlier->tv_usec < 1000 * 1000);
   
   if (later->tv_sec < earlier->tv_sec) {
-    //spindump_errorf("expected later time to be greater, seconds go back %lus", earlier->tv_sec - later->tv_sec);
+    spindump_errorf("expected later time to be greater, seconds go back %lus", earlier->tv_sec - later->tv_sec);
     return(0);
   }
   if (later->tv_sec == earlier->tv_sec) {
     if (later->tv_usec < earlier->tv_usec) {
-      /*spindump_errorf("spindump_timediffinusec: expected later time to be greater, secs both %lus, microsecond go back %luus (%lu to %lu)",
+      spindump_errorf("spindump_timediffinusec: expected later time to be greater, secs both %lus, microsecond go back %luus (%lu to %lu)",
                       earlier->tv_sec,
                       earlier->tv_usec - later->tv_usec,
-                      earlier->tv_usec, later->tv_usec);*/
+                      earlier->tv_usec, later->tv_usec);
       return(0);
     } else {
       return(((unsigned long long)later->tv_usec) - ((unsigned long long)earlier->tv_usec));
