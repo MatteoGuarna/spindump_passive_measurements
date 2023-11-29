@@ -25,9 +25,10 @@
 #include "spindump_connections.h"
 #include "spindump_analyze.h"
 #include "spindump_analyze_tcp.h"
-//ADDED TO ENABLE SPIN SUPPORT FOR TCP
+//ADDED TO ENABLE EFM SUPPORT FOR TCP
 #include "spindump_analyze_tcp_parser.h"
 #include "spindump_spin.h"
+#include "spindump_titalia_delaybit.h"
 
 //
 // Function prototypes ------------------------------------------------------------------------
@@ -134,7 +135,7 @@ spindump_analyze_process_tcp_markackreceived(struct spindump_analyze* state,
                           diff / 1000,
                           *finset);
       
-      //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
       //avoid new rtt measurement if connection is established and any EFM is active
       if (connection->u.tcp.EFM_technique == spindump_tcp_no_EFM || connection->state != spindump_connection_state_established)
       spindump_connections_newrttmeasurement(state,
@@ -166,7 +167,7 @@ spindump_analyze_process_tcp_markackreceived(struct spindump_analyze* state,
                           sentSeq,
                           diff / 1000,
                           *finset);
-      //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
       //avoid new rtt measurement if connection is established and any EFM is active
       if (connection->u.tcp.EFM_technique == spindump_tcp_no_EFM || connection->state != spindump_connection_state_established)
       spindump_connections_newrttmeasurement(state,
@@ -398,7 +399,7 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
                                              finreceived);
     *p_connection = connection;
 
-    //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+    //ADDED TO ENABLE EFM SUPPORT FOR TCP
     //
     //Check if EFM techniques are used
     //
@@ -431,15 +432,13 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
 
     if (connection != 0) {
 
-      //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
       //sanity check
-      /*
       enum spindump_tcp_EFM_technique efm = spindump_analyze_tcp_parser_check_EFM(packet->contents + tcpHeaderPosition);
       if (connection->u.tcp.EFM_technique != efm) {
         connection->u.tcp.EFM_technique = spindump_tcp_no_EFM; //check for correctness: both SYN and SYNACK must carrry the same marking, 
                                                                     //otherwise, do not apply the efm algorythm
       }
-      */
 
       if (connection->state == spindump_connection_state_establishing) {
         spindump_connections_changestate(state,
@@ -634,15 +633,38 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
 
     if (connection != 0) {
 
-      //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
       //Normal case of connection established, check if efm is active
-      if (connection->state == spindump_connection_state_established && connection->u.tcp.EFM_technique == spindump_tcp_EFM_spin) {
+      if (
+        connection->state == spindump_connection_state_established &&
+        connection->u.tcp.EFM_technique == spindump_tcp_EFM_spin
+       ) {
         //fprintf(stderr,"spin evaluation is ongoing...");
         //if spin bit is used, retrieve the spin value:
         int spin = spindump_analyze_tcp_parser_gettimebit(packet->contents + tcpHeaderPosition);
         //call function for RTT measurement
         int isFlip = 0;
         spindump_spintracker_observespinandcalculatertt(state,packet,connection,(struct timeval*)timestamp,spin,fromResponder,ipPacketLength,&isFlip);
+      }
+      else if (
+        connection->state == spindump_connection_state_established && (
+          connection->u.tcp.EFM_technique == spindump_tcp_EFM_delay ||
+          connection->u.tcp.EFM_technique == spindump_tcp_EFM_delay_plus_q
+        )) {
+        //if delay bit is used, retrieve the delay value:
+        int delay = spindump_analyze_tcp_parser_gettimebit(packet->contents + tcpHeaderPosition);
+        //call function for RTT measurement
+        spindump_delaybittracker_observeandcalculatertt(state,
+                                                        packet,
+                                                        connection,
+                                                        (struct timeval*)timestamp,
+                                                        fromResponder,ipPacketLength,
+                                                        delay /*spindump_extrameas_delaybit*/);//not actually useful, just meant for retrocompatibility with QUIC
+        
+        if (connection->u.tcp.EFM_technique == spindump_tcp_EFM_delay_plus_q){
+          //implement q bit logic
+          
+        }
       }
 
       spindump_analyze_process_tcp_markseqsent(connection,

@@ -39,6 +39,60 @@ spindump_delaybittracker_observeandcalculatertt(struct spindump_analyze* state,
                                                 unsigned int ipPacketLength,
                                                 spindump_extrameas_int extrameasbits) {
   
+  //ADDED TO ENABLE EFM SUPPORT FOR TCP
+  if(connection->type == spindump_connection_transport_tcp) {
+    if (extrameasbits == 0) return; //carries delay bit info
+    //mock the original function code but for tcp
+    struct spindump_delaybittracker* tracker;
+    struct spindump_delaybittracker* otherTracker;
+    if (fromResponder) {
+      tracker = &connection->u.tcp.delaybitFromPeer2to1;
+      otherTracker = &connection->u.tcp.delaybitFromPeer1to2;
+    } else {
+      tracker = &connection->u.tcp.delaybitFromPeer1to2;
+      otherTracker = &connection->u.tcp.delaybitFromPeer2to1;
+    }
+
+    unsigned long long diff = spindump_timediffinusecs(ts, &tracker->lastDelaySample);
+    fprintf(stderr, "DELAY RTT IS BEING CALCULATED: diff = %llu\n", diff);
+    if (diff < spindump_delaybit_tmax) {
+      spindump_connections_newrttmeasurement(state,
+                                            packet,
+                                            connection,
+                                            ipPacketLength,
+                                            fromResponder,
+                                            1, // unidirectional
+                                            &tracker->lastDelaySample,
+                                            ts,
+                                            "DELAYBIT_UNIDIR");
+    }
+
+    //
+    // Try to compute LeftRTT or RightRTT
+    //
+
+    diff = spindump_timediffinusecs(ts, &otherTracker->lastDelaySample);
+    if (diff < spindump_delaybit_tmax) {
+      spindump_connections_newrttmeasurement(state,
+                                            packet,
+                                            connection,
+                                            ipPacketLength,
+                                            fromResponder, // 0 = left, 1 = right
+                                            0, // bidirectional
+                                            &otherTracker->lastDelaySample,
+                                            ts,
+                                            "DELAYBIT");
+    }
+
+    //
+    // Save delay sample timestamp
+    //
+
+    tracker->lastDelaySample = *ts;
+
+    return;
+  }
+ 
   //
   // Simply return if packet is not a delay sample
   //

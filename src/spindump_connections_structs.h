@@ -51,7 +51,7 @@
 // Data structures ----------------------------------------------------------------------------
 //
 
-//ADDED TO ENABLE SPIN SUPPORT FOR TCP
+//ADDED TO ENABLE EFM SUPPORT FOR TCP
 enum spindump_tcp_EFM_technique {
   spindump_tcp_no_EFM,
   spindump_tcp_EFM_spin,
@@ -153,10 +153,13 @@ struct spindump_connection {
       struct spindump_seqtracker side2Seqs;         // when did we see sequence numbers from side2?
       int finFromSide1;                             // seen a FIN from side1?
       int finFromSide2;                             // seen a FIN from side2?
-      //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
       enum spindump_tcp_EFM_technique EFM_technique; //necessary to tell the EFM techniques apart
       struct spindump_spintracker spinFromPeer1to2; // tracking spin bit flips from side 1 to 2
       struct spindump_spintracker spinFromPeer2to1; // tracking spin bit flips from side 2 to 1
+      struct spindump_delaybittracker delaybitFromPeer1to2; // tracking delay bit from side 1 to 2
+      struct spindump_delaybittracker delaybitFromPeer2to1; // tracking delay bit from side 2 to 1
+
     } tcp;
 
     struct {

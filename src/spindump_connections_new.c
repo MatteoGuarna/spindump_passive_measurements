@@ -41,7 +41,7 @@
 #include "spindump_titalia_rtloss.h"
 #include "spindump_titalia_qrloss.h"
 #include "spindump_orange_qlloss.h"
-//ADDED TO ENABLE SPIN SUPPORT FOR TCP
+//ADDED TO ENABLE EFM SUPPORT FOR TCP
 #include "spindump_analyze_tcp_parser.h"
 
 //
@@ -120,9 +120,11 @@ spindump_connections_newconnection_aux(struct spindump_connectionstable* table,
   case spindump_connection_transport_tcp:
     spindump_seqtracker_initialize(&connection->u.tcp.side1Seqs);
     spindump_seqtracker_initialize(&connection->u.tcp.side2Seqs);
-    //ADDED TO ENABLE SPIN SUPPORT FOR TCP
+    //ADDED TO ENABLE EFM SUPPORT FOR TCP
     spindump_spintracker_initialize(&connection->u.tcp.spinFromPeer1to2);
     spindump_spintracker_initialize(&connection->u.tcp.spinFromPeer2to1);
+    spindump_delaybittracker_initialize(&connection->u.tcp.delaybitFromPeer1to2);
+    spindump_delaybittracker_initialize(&connection->u.tcp.delaybitFromPeer2to1);
     connection->u.tcp.EFM_technique = spindump_tcp_no_EFM; /*may not be necessary*/
     break;
 

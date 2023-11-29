@@ -10,7 +10,7 @@
 void print_binary(uint8_t val);
 void print_header(const unsigned char* header);
 
-//ADDED TO ENABLE SPIN SUPPORT FOR TCP
+//ADDED TO ENABLE EFM SUPPORT FOR TCP
 enum spindump_tcp_EFM_technique
 spindump_analyze_tcp_parser_check_EFM(const unsigned char* header) {
 
@@ -66,10 +66,10 @@ spindump_analyze_tcp_parser_check_EFM(const unsigned char* header) {
   return spindump_tcp_no_EFM;
   */
 
-fprintf(stderr,"header = ");
+//fprintf(stderr,"header = ");
 //print_header(header);
 
-fprintf(stderr,"offset = ");
+//fprintf(stderr,"offset = ");
 print_binary(off_rsvd);
 
 if ((off_rsvd & 0x06) == 0x04){  //SPIN BIT
