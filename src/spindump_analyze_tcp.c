@@ -432,14 +432,6 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
 
     if (connection != 0) {
 
-      //ADDED TO ENABLE EFM SUPPORT FOR TCP
-      //sanity check
-      enum spindump_tcp_EFM_technique efm = spindump_analyze_tcp_parser_check_EFM(packet->contents + tcpHeaderPosition);
-      if (connection->u.tcp.EFM_technique != efm) {
-        connection->u.tcp.EFM_technique = spindump_tcp_no_EFM; //check for correctness: both SYN and SYNACK must carrry the same marking, 
-                                                                    //otherwise, do not apply the efm algorythm
-      }
-
       if (connection->state == spindump_connection_state_establishing) {
         spindump_connections_changestate(state,
                                          packet,
@@ -466,6 +458,14 @@ spindump_analyze_process_tcp(struct spindump_analyze* state,
                                                    ts_ecr,
                                                    &packet->timestamp,&ackedfin);
       *p_connection = connection;
+
+      //ADDED TO ENABLE EFM SUPPORT FOR TCP
+      //sanity check
+      enum spindump_tcp_EFM_technique efm = spindump_analyze_tcp_parser_check_EFM(packet->contents + tcpHeaderPosition);
+      if (connection->u.tcp.EFM_technique != efm) {
+        connection->u.tcp.EFM_technique = spindump_tcp_no_EFM; //check for correctness: both SYN and SYNACK must carrry the same marking, 
+                                                                    //otherwise, do not apply the efm algorythm
+      }
 
     } else {
 
